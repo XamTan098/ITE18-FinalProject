@@ -1,0 +1,11 @@
+Model Information:
+* title:	Model house for playing Jam
+* source:	https://sketchfab.com/3d-models/model-house-for-playing-jam-aef7e959935b4504a4135945bfc6a273
+* author:	spatka (https://sketchfab.com/spatka)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Model house for playing Jam" (https://sketchfab.com/3d-models/model-house-for-playing-jam-aef7e959935b4504a4135945bfc6a273) by spatka (https://sketchfab.com/spatka) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

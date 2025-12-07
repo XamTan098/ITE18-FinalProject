@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hide and Seeker</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+</head>
+<body>
+<a-scene>
+  <a-assets>
+    <!-- ground asset -->
+    <img id="ground-texture-COLOR" src="dist/assets/textures/ground/Grass004_1K-JPG_Color.jpg">
+    <img id="ground-texture-NORMAL" src="dist/assets/textures/ground/Grass004_1K-JPG_NormalGL.jpg">
+    <img id="ground-texture-ROUGH" src="dist/assets/textures/ground/Grass004_1K-JPG_Roughness.jpg">
+    <img id="ground-texture-AO" src="dist/assets/textures/ground/Grass004_1K-JPG_AmbientOcclusion.jpg">
+
+    <img id="road-texture-COLOR" src="dist/assets/textures/road/Road001_1K-JPG_Color.jpg">
+    
+    <!-- sky asset -->
+    <img id="sky-texture" src="dist/assets/textures/sky/EveningSkyHDRI018B_1K_TONEMAPPED.jpg">
+    
+    <!-- character assets -->
+    <a-asset-item id="character-model-GLTF" src="dist/assets/models/character1/scene.gltf"></a-asset-item>
+
+    <a-asset-item id="car-model-GLTF" src="dist/assets/models/car/scene.gltf"></a-asset-item>
+    <a-asset-item id="van-model-GLTF" src="dist/assets/models/van/scene.gltf"></a-asset-item>
+
+    <!-- forest asset -->
+    <a-asset-item id="tree1-model-GLTF" src="dist/assets/models/forest/tree1/scene.gltf"></a-asset-item>
+    <a-asset-item id="tree2-model-GLTF" src="dist/assets/models/forest/tree2/scene.gltf"></a-asset-item>
+    <a-asset-item id="grass-model-GLTF" src="dist/assets/models/forest/grass/scene.gltf"></a-asset-item>
+    <a-asset-item id="rock1-model-GLTF" src="dist/assets/models/forest/rock1/scene.gltf"></a-asset-item>
+    <a-asset-item id="rock2-model-GLTF" src="dist/assets/models/forest/rock2/scene.gltf"></a-asset-item>
+
+    <!-- house assets -->
+    <a-asset-item id="house-model-GLTF" src="dist/assets/models/house/house1-red/scene.gltf"></a-asset-item>
+    <a-asset-item id="house-withered-model-GLTF" src="dist/assets/models/house/house-withered/scene.gltf"></a-asset-item>
+    <a-asset-item id="house-model2-GLTF" src="dist/assets/models/house/house2/scene.gltf"></a-asset-item>
+  </a-assets>
+
+  <!-- Player Camera -->
+  <a-camera position="0 1.6 84" wasd-controls look-controls></a-camera>
+
+  <!-- ground -->
+  <a-plane material="color:#FFFFFF;
+                     src: #ground-texture-COLOR;
+                     repeat: 200 200"
+           rotation="-90 0 0"
+           position="0 0 0"
+           scale="200 200">
+  </a-plane>
+
+  <!-- road -->
+  <a-plane material="color:#333333;
+                     src: #road-texture-COLOR;
+                     repeat: 1 50"
+           rotation="-90 0 90"
+           position="0 0.005 90"
+           scale="10 200">
+  </a-plane>
+
+  <a-sky material="src: #sky-texture" position="0 -5 0" rotation="0 90 0"></a-sky>
+
+  <!-- car model -->
+  <a-entity gltf-model="#car-model-GLTF"
+            position="-5 0.7 84"
+            scale="0.45 0.45 0.45"
+            rotation="0 90 0"></a-entity>
+
+  <!-- Mike - Intro Character -->
+  <a-entity gltf-model="#character-model-GLTF"
+            position="10 0 83"
+            scale="1 1 1"
+            rotation="0 -75 0"></a-entity>
+
+  <a-entity gltf-model="#house-model2-GLTF"
+            position="20 -0.001 64"
+            scale="0.069 0.069 0.069"
+            rotation="0 0 0"></a-entity>
+
+  <a-entity gltf-model="#van-model-GLTF"
+            position="17 0 74"
+            scale="2 2 2"
+            rotation="0 90 0"></a-entity>
+
+  <a-entity gltf-model="#rock1-model-GLTF" position="0 0 60" scale="0.0003 0.0003 0.0003"></a-entity>
+  <!-- hidden tree loaders -->
+  <a-entity id="tree1-src" gltf-model="#tree1-model-GLTF" visible="false"></a-entity>
+  <a-entity id="tree2-src" gltf-model="#tree2-model-GLTF" visible="false"></a-entity>
+  <a-entity id="grass-src" gltf-model="#grass-model-GLTF" visible="false"></a-entity>
+  <a-entity id="rock1-src" gltf-model="#rock1-model-GLTF" visible="false"></a-entity>
+  <a-entity id="rock2-src" gltf-model="#rock2-model-GLTF" visible="false"></a-entity>
+
+  <!-- forest root -->
+  <a-entity id="forest"></a-entity>
+
+</a-scene>
+
+<script>
+AFRAME.registerComponent('forest-generator', {
+  init: function () {
+    const forestRoot = document.getElementById('forest').object3D;
+
+    const X_MIN = -100;
+    const X_MAX = 100;
+    const Z_START = 55;
+    const Z_END = -90;
+    const density = 22; // increase for more trees
+    const minDistance = 5;
+
+    const width = X_MAX - X_MIN;
+    const height = Math.abs(Z_START - Z_END);
+    const area = width * height;
+    const count = Math.floor((area / 3000) * density);
+
+    const sources = [
+      document.getElementById('tree1-src'),
+      document.getElementById('tree2-src')
+    ];
+
+    let readyCount = 0;
+    sources.forEach(src => src.addEventListener('model-loaded', loaded));
+
+    function loaded() {
+      readyCount++;
+      if (readyCount === sources.length) buildForest();
+    }
+
+    function buildForest() {
+      const objs = sources.map(s => s.getObject3D('mesh'));
+      const placedItems = [];
+
+      for (let i = 0; i < count; i++) {
+        let x, z;
+        let safe = false;
+        let attempts = 0;
+
+        do {
+          x = X_MIN + Math.random() * width;
+          z = Z_END + Math.random() * height;
+
+          safe = true;
+          for (const pos of placedItems) {
+            const dx = pos.x - x;
+            const dz = pos.z - z;
+            if (Math.sqrt(dx*dx + dz*dz) < minDistance) {
+              safe = false;
+              break;
+            }
+          }
+
+          attempts++;
+          if (attempts > 50) break;
+        } while (!safe);
+
+        const y = (Math.random() * 0.2) - 0.1;
+        const base = objs[Math.floor(Math.random() * objs.length)];
+        const clone = base.clone(true);
+
+        clone.position.set(x, y, z);
+        clone.rotation.y = Math.random() * Math.PI * 2;
+        clone.scale.set(1, 1, 1); // trees keep original scale
+
+        forestRoot.add(clone);
+        placedItems.push({ x, z });
+      }
+
+      console.log(`Forest ready: ${placedItems.length} trees`);
+    }
+  }
+});
+
+// apply component
+document.querySelector('a-scene').addEventListener('loaded', () => {
+  document.querySelector('a-scene').setAttribute('forest-generator', '');
+});
+</script>
+
+</body>
+</html>
